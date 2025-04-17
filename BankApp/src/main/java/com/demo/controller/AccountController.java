@@ -1,8 +1,11 @@
+
 package com.demo.controller;
 
 import com.demo.model.Account;
 import com.demo.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -49,17 +52,27 @@ public class AccountController {
 
     // Withdraw
     @PutMapping("/withdraw/{accNo}/{amount}")
-    public Account withdraw(@PathVariable String accNo, @PathVariable Double amount) {
-        Account acc = accountRepository.findByAccountNumber(accNo)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        
+    public ResponseEntity<String> withdraw(@PathVariable String accNo, @PathVariable Double amount) {
+        Optional<Account> optionalAcc = accountRepository.findByAccountNumber(accNo);
+
+        if (!optionalAcc.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("❌ Account not found: " + accNo);
+        }
+
+        Account acc = optionalAcc.get();
+
         if (acc.getBalance() < amount) {
-            throw new RuntimeException("Insufficient balance");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(" Insufficient balance. Available: ₹" + acc.getBalance() + ", Requested: ₹" + amount);
         }
 
         acc.setBalance(acc.getBalance() - amount);
-        return accountRepository.save(acc);
+        accountRepository.save(acc);
+
+        return ResponseEntity.ok("✅ Withdrawn ₹" + amount + ". New balance: ₹" + acc.getBalance());
     }
+
       
     
     @DeleteMapping("/delete/{accountNumber}")
