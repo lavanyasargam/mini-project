@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -89,11 +90,18 @@ public class AccountController {
 
     
 
-    // Check balance
-    @GetMapping("/balance/{accNo}")
-    public Double getBalance(@PathVariable String accNo) {
-        Account acc = accountRepository.findByAccountNumber(accNo)
+    // shows particular account details
+    @GetMapping("/account/{accNo}")
+    public Account getAccountDetails(@PathVariable String accNo) {
+        return accountRepository.findByAccountNumber(accNo)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        return acc.getBalance();
     }
+
+    
+    @GetMapping("/view")
+    public List<Account> viewAllAccounts() {
+        return accountRepository.findAll();
+    }
+
+    
 }
